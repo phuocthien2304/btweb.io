@@ -1,0 +1,46 @@
+name: Deploy static content to Pages
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: List files in root (Debug)
+        run: ls -la  # Kiểm tra xem tệp CSS, hình ảnh có trong thư mục gốc không
+      
+      - name: Check specific files (Debug)
+        run: |
+          echo "Checking for styles.css and images..."
+          ls -la styles.css || echo "styles.css not found"
+          ls -la *.jpg || echo "No .jpg files found"
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'  # Tải toàn bộ thư mục gốc
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
